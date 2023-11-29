@@ -1,0 +1,191 @@
+---
+title: "autoWorkstream"
+output: html_document
+date: "2023-06-22"
+---
+```{r}
+library(IBCF.MTME)
+data <- read.csv("/Users/zongqi.yu/Desktop/HybSeed-LitRev/c1_m2_s.csv")
+uns <- read.csv("/Users/zongqi.yu/Desktop/HybSeed-LitRev/c1_m2.csv")
+  
+Tidy <- getTidyForm(data)
+CrossV1 <- CV.RandomPart(Tidy, NPartitions = 1, PTesting = 0.45) #!!!!!change!!!!!
+test1 <- IBCF(CrossV1)
+CrossV2 <- CV.RandomPart(Tidy, NPartitions = 1, PTesting = 0.45) #!!!!!change!!!!!
+test2 <- IBCF(CrossV2)
+CrossV3 <- CV.RandomPart(Tidy, NPartitions = 1, PTesting = 0.45) #!!!!!change!!!!!
+test3 <- IBCF(CrossV3)
+
+yhat1 = test1$yHat
+yhat2 = test2$yHat
+yhat3 = test3$yHat
+temp1 = data[,colnames(yhat1)]
+temp2 = data[,colnames(yhat2)]
+temp3 = data[,colnames(yhat3)]
+uns = uns[,-1]
+new_data = cbind(GID = data[,1], temp1)
+
+#error calculation
+sqEr1 = 0
+sqEr2 = 0
+sqEr3 = 0
+colmean = apply(uns,2,mean)
+colsd = apply(uns,2,sd)
+
+for (i in 1:ncol(yhat1)) {
+  mean1 = colmean[i]
+  sd1 = colsd[i]
+  for(j in 1:nrow(yhat1)) {
+    if(!is.nan(yhat1[j,i])) {
+      realEst1 = yhat1[j,i] * sd1 + mean1
+      sqEr1 = sqEr1 + 
+        (realEst1 - uns[j, i]) * (realEst1 - uns[j, i]) 
+    }
+  }
+}
+
+for (i in 1:ncol(yhat2)) {
+  mean2 = colmean[i]
+  sd2 = colsd[i]
+  for(j in 1:nrow(yhat2)) {
+    if(!is.nan(yhat2[j,i])) {
+      realEst2 = yhat2[j,i] * sd2 + mean2
+      sqEr2 = sqEr2 + 
+        (realEst2 - uns[j, i]) * (realEst2 - uns[j, i]) 
+    }
+  }
+}
+
+for (i in 1:ncol(yhat3)) {
+  mean3 = colmean[i]
+  sd3 = colsd[i]
+  for(j in 1:nrow(yhat3)) {
+    if(!is.nan(yhat3[j,i])) {
+      realEst3 = yhat3[j,i] * sd3 + mean3
+      sqEr3 = sqEr3 + 
+        (realEst3 - uns[j, i]) * (realEst3 - uns[j, i]) 
+    }
+  }
+}
+
+for(i in 1:ncol(yhat1)) {
+  for(j in 1:nrow(yhat1)) {
+    if(is.nan(yhat1[j,i])) {
+      yhat1[j,i] = 0
+    }
+  }
+}
+
+for(i in 1:ncol(yhat2)) {
+  for(j in 1:nrow(yhat2)) {
+    if(is.nan(yhat2[j,i])) {
+      yhat2[j,i] = 0
+    }
+  }
+}
+
+for(i in 1:ncol(yhat3)) {
+  for(j in 1:nrow(yhat3)) {
+    if(is.nan(yhat3[j,i])) {
+      yhat3[j,i] = 0
+    }
+  }
+}
+write.csv(new_data, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/c1_m2_s.csv", row.names=FALSE)
+write.csv(yhat1, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/c1_m2_s_45r1.csv", row.names=FALSE)
+write.csv(yhat2, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/c1_m2_s_45r2.csv", row.names=FALSE)
+write.csv(yhat3, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/c1_m2_s_45r3.csv", row.names=FALSE)
+```
+
+
+
+```{r}
+library(IBCF.MTME)
+data <- read.csv("/Users/zongqi.yu/Desktop/HybSeed-LitRev/c1_w5.csv")
+
+Tidy <- getTidyForm(data)
+CrossV1 <- CV.RandomPart(Tidy, NPartitions = 1, PTesting = 0.2) #!!!!!change!!!!!
+test1 <- IBCF(CrossV1)
+CrossV2 <- CV.RandomPart(Tidy, NPartitions = 1, PTesting = 0.2) #!!!!!change!!!!!
+test2 <- IBCF(CrossV2)
+CrossV3 <- CV.RandomPart(Tidy, NPartitions = 1, PTesting = 0.2) #!!!!!change!!!!!
+test3 <- IBCF(CrossV3)
+
+yhat1 = test1$yHat
+yhat2 = test2$yHat
+yhat3 = test3$yHat
+temp1 = data[,colnames(yhat1)]
+temp2 = data[,colnames(yhat2)]
+temp3 = data[,colnames(yhat3)]
+new_data = cbind(GID = data[,1], temp1)
+
+#error calculation
+sqEr1 = 0
+sqEr2 = 0
+sqEr3 = 0
+
+#matrix = getMatrixForm(Wheat_IBCF)
+for (i in 1:ncol(yhat1)) {
+  for(j in 1:nrow(yhat1)) {
+    if(!is.nan(yhat1[j,i])) {
+      sqEr1 = sqEr1 + 
+        (yhat1[j,i] - temp1[j, i]) * (yhat1[j,i] - temp1[j, i]) 
+    }
+  }
+}
+
+for (i in 1:ncol(yhat2)) {
+  for(j in 1:nrow(yhat2)) {
+    if(!is.nan(yhat2[j,i])) {
+      sqEr2 = sqEr2 + 
+        (yhat2[j,i] - temp2[j, i]) * (yhat2[j,i] - temp2[j, i]) 
+    }
+  }
+}
+
+for (i in 1:ncol(yhat3)) {
+  for(j in 1:nrow(yhat3)) {
+    if(!is.nan(yhat3[j,i])) {
+      sqEr3 = sqEr3 + 
+        (yhat3[j,i] - temp3[j, i]) * (yhat3[j,i] - temp3[j, i]) 
+    }
+  }
+}
+
+for(i in 1:ncol(yhat1)) {
+  for(j in 1:nrow(yhat1)) {
+    if(is.nan(yhat1[j,i])) {
+      yhat1[j,i] = 0
+    }
+  }
+}
+
+for(i in 1:ncol(yhat2)) {
+  for(j in 1:nrow(yhat2)) {
+    if(is.nan(yhat2[j,i])) {
+      yhat2[j,i] = 0
+    }
+  }
+}
+
+for(i in 1:ncol(yhat3)) {
+  for(j in 1:nrow(yhat3)) {
+    if(is.nan(yhat3[j,i])) {
+      yhat3[j,i] = 0
+    }
+  }
+}
+write.csv(new_data, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/c1_w5_s.csv", row.names=FALSE)
+write.csv(yhat1, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/c1_w5_s_20r1.csv", row.names=FALSE)
+write.csv(yhat2, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/c1_w5_s_20r2.csv", row.names=FALSE)
+write.csv(yhat3, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/c1_w5_s_20r3.csv", row.names=FALSE)
+```
+
+```{r}
+data <- data.frame(GID = seq(1,10), 
+                   GY_ONE = c(9.26,3.74,6.92,8.15,1.39,2.81,7.62,5.43,4.08,9.89),
+                   GY_TWO = c(7.36,4.72,9.18,6.84,5.15,3.68,8.99,2.28,1.91,9.77),
+                   GY_THREE = c(6.17,2.43,8.22,3.29,4.01,5.59,9.56,7.99,1.11,9.95),
+                   GY_FOUR = c(3.62,9.57,6.89,4.98,8.10,2.26,5.74,7.33,1.51,9.07))
+                   
+```

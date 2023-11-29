@@ -1,0 +1,372 @@
+---
+title: "NewMatrixCompletion"
+output: html_document
+date: "2023-07-20"
+---
+
+```{r}
+setwd("/Users/zongqi.yu/Desktop/HybSeed-LitRev/wofostInput/")
+weather1314 <- read.csv("w1314.csv")
+#weather1415 <- read.csv("w1415LHT.csv")
+#weather1516 <- read.csv("w1516LHT.csv")
+#weather1617 <- read.csv("w1617LHT.csv")
+```
+
+```{r}
+w1314_LHT = weather1314
+w1314_LHT$prec[1] = w1314_LHT$prec[1] + 108
+w1314_LHT$prec[35] = w1314_LHT$prec[35] + 108
+w1314_LHT$prec[65] = w1314_LHT$prec[65] + 108
+w1314_LHT$prec[90] = w1314_LHT$prec[90] + 108
+w1314_LHT$prec[110] = w1314_LHT$prec[110] + 108
+
+w1415_LHT = weather1415
+w1415_LHT$prec[1] = w1415_LHT$prec[1] + 108
+w1415_LHT$prec[35] = w1415_LHT$prec[35] + 108
+w1415_LHT$prec[65] = w1415_LHT$prec[65] + 108
+w1415_LHT$prec[90] = w1415_LHT$prec[90] + 108
+w1415_LHT$prec[110] = w1415_LHT$prec[110] + 108
+
+w1516_LHT = weather1516
+w1516_LHT$prec[1] = w1516_LHT$prec[1] + 108
+w1516_LHT$prec[35] = w1516_LHT$prec[35] + 108
+w1516_LHT$prec[65] = w1516_LHT$prec[65] + 108
+w1516_LHT$prec[90] = w1516_LHT$prec[90] + 108
+w1516_LHT$prec[110] = w1516_LHT$prec[110] + 108
+
+w1617_LHT = weather1617
+w1617_LHT$prec[1] = w1617_LHT$prec[1] + 108
+w1617_LHT$prec[35] = w1617_LHT$prec[35] + 108
+w1617_LHT$prec[65] = w1617_LHT$prec[65] + 108
+w1617_LHT$prec[90] = w1617_LHT$prec[90] + 108
+w1617_LHT$prec[110] = w1617_LHT$prec[110] + 108
+
+write.csv(w1314_LHT, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/w1314_LHT.csv", row.names=FALSE)
+write.csv(w1415_LHT, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/w1415_LHT.csv", row.names=FALSE)
+write.csv(w1516_LHT, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/w1516_LHT.csv", row.names=FALSE)
+write.csv(w1617_LHT, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/w1617_LHT.csv", row.names=FALSE)
+```
+
+```{r}
+w1617_Flat5IR$prec[1] = w1617_Flat5IR$prec[1] + 108
+w1617_Flat5IR$prec[11] = w1617_Flat5IR$prec[11] + 108
+w1617_Flat5IR$prec[40] = w1617_Flat5IR$prec[40] + 108
+w1617_Flat5IR$prec[71] = w1617_Flat5IR$prec[71] + 108
+w1617_Flat5IR$prec[96] = w1617_Flat5IR$prec[96] + 108
+```
+
+```{r}
+w1314_Bed2IR = weather1314
+w1314_Bed2IR$prec[1] = w1314_Bed2IR$prec[1] + 145
+w1314_Bed2IR$prec[36] = w1314_Bed2IR$prec[36] + 145
+write.csv(w1314_Bed2IR, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/w1314_Bed2IR.csv", row.names=FALSE)
+```
+
+```{r}
+w1314_FlatDrip = weather1314
+w1314_FlatDrip$prec[1] = w1314_FlatDrip$prec[1] + 90
+w1314_FlatDrip$prec[10] = w1314_FlatDrip$prec[10] + 40
+w1314_FlatDrip$prec[38] = w1314_FlatDrip$prec[38] + 40
+write.csv(w1314_FlatDrip, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/w1314_FlatDrip.csv", row.names=FALSE)
+```
+
+```{r}
+setwd("/Users/zongqi.yu/Desktop/HybSeed-LitRev/wofostInput/")
+solar1314 <- read.csv("2013-2014solarLHT.csv")
+weather1314 <- read.csv("2013-2014weatherLHT.csv")
+prec1314 <- read.csv("2013-2014precLHT.csv")
+wind1314 <- read.csv("2013-2014windLHT.csv")
+```
+
+```{r}
+start_date <- ymd("2014-02-01")
+end_date <- ymd("2014-08-31")
+dates <- seq(start_date, end_date, by = "day")
+radiation1314 <- solar1314$ALLSKY_SFC_SW_DWN * 1000
+vapr1314 <- 6.11*10^((7.5*weather1314$T2MDEW)/(237.3+weather1314$T2MDEW))
+w1314LHT <- data.frame(date = dates, srad = radiation1314, tmin = weather1314$T2M_MIN, tmax = weather1314$T2M_MAX, vapr = vapr1314, wind = wind1314$WS2M, prec = prec1314$PRECTOTCORR)
+write.csv(w1314LHT, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/w1314LHT.csv", row.names=FALSE)
+```
+
+```{r}
+#正式Running Code
+library(Rwofost)
+
+#define control
+contrReg <- wofost_control()
+contrEHT <- wofost_control()
+contrLHT <- wofost_control()
+contrReg$modelstart <- as.Date("2015-11-01") # change here
+contrEHT$modelstart <- as.Date("2015-10-01") # change here
+contrLHT$modelstart <- as.Date("2016-02-01") # change here
+contrReg$latitude = 27.37
+contrEHT$latitude = 27.37
+contrLHT$latitude = 27.37
+contrReg$elevation = 35
+contrEHT$elevation = 35
+contrLHT$elevation = 35
+contrReg$water_limited = 1
+contrEHT$water_limited = 1
+contrLHT$water_limited = 1
+
+contrReg$start_sowing = 1
+contrEHT$start_sowing = 1
+contrLHT$start_sowing = 1
+
+contrReg$cropstart = 1
+contrEHT$cropstart = 1
+contrLHT$cropstart = 1
+
+contrReg$stop_maturity = 1
+contrEHT$stop_maturity = 1
+contrLHT$stop_maturity = 1
+
+#define weather types
+setwd("/Users/zongqi.yu/Desktop/HybSeed-LitRev/wofostInput")
+wBed5IR <- read.csv("w1516.csv") # change filename
+wBed2IR <- read.csv("w1516.csv") # change filename
+wFlat5IR <- read.csv("w1516.csv") # change filename
+wFlatDrip <- read.csv("w1516.csv") # change filename
+wEHT <- read.csv("w1516EHT.csv")
+wLHT <- read.csv("w1516LHT.csv")
+wBed5IR$date <- as.Date(wBed5IR$date)
+wBed2IR$date <- as.Date(wBed2IR$date)
+wFlat5IR$date <- as.Date(wFlat5IR$date)
+wFlatDrip$date <- as.Date(wFlatDrip$date)
+wEHT$date <- as.Date(wEHT$date)
+wLHT$date <- as.Date(wLHT$date)
+wBed5IR$prec = wBed5IR$prec + 5.5
+wFlat5IR$prec = wFlat5IR$prec + 5.3
+wBed2IR$prec = wBed2IR$prec + 2.9
+wFlatDrip$prec = wFlatDrip$prec + 1.8
+wEHT$prec = wEHT$prec + 5.5
+wLHT$prec = wLHT$prec + 5.5
+
+#define crop types
+wheat1 <- wofost_crop("winterwheat_101")
+wheat2 <- wofost_crop("winterwheat_102")
+wheat3 <- wofost_crop("winterwheat_104")
+wheat4 <- wofost_crop("winterwheat_105")
+wheat5 <- wofost_crop("winterwheat_106")
+wheat6 <- wofost_crop("winterwheat_107")
+
+wheat7 <- wofost_crop("winterwheat_101")
+wheat7$TSUM1 = 950
+wheat7$TSUM2 = 900
+wheat8 <- wofost_crop("winterwheat_102")
+wheat8$TSUM1 = 1150
+wheat8$TSUM2 = 1100
+wheat9 <- wofost_crop("winterwheat_104")
+wheat9$TSUM1 = 1250
+wheat9$TSUM2 = 950
+wheat10 <- wofost_crop("winterwheat_105")
+wheat10$TSUM1 = 1200
+wheat10$TSUM2 = 1100
+wheat11 <- wofost_crop("winterwheat_106")
+wheat11$TSUM1 = 1200
+wheat11$TSUM2 = 800
+wheat12 <- wofost_crop("winterwheat_107")
+wheat12$TSUM1 = 1400
+wheat12$TSUM2 = 1300
+
+wheat13 <- wofost_crop("winterwheat_101")
+wheat13$TSUM1 = 950
+wheat13$TSUM2 = 900
+wheat13$SPAN = 33
+wheat13$TBASE = 3
+wheat14 <- wofost_crop("winterwheat_102")
+wheat14$TSUM1 = 1150
+wheat14$TSUM2 = 1100
+wheat14$SPAN = 29
+wheat14$TBASE = -2
+wheat15 <- wofost_crop("winterwheat_104")
+wheat15$TSUM1 = 1250
+wheat15$TSUM2 = 950
+wheat15$SPAN = 34
+wheat15$TBASE = 2
+wheat16 <- wofost_crop("winterwheat_105")
+wheat16$TSUM1 = 1200
+wheat16$TSUM2 = 1100
+wheat16$SPAN = 28
+wheat16$TBASE = 1
+wheat17 <- wofost_crop("winterwheat_106")
+wheat17$TSUM1 = 1200
+wheat17$TSUM2 = 800
+wheat17$SPAN = 32
+wheat17$TBASE = -3
+wheat18 <- wofost_crop("winterwheat_107")
+wheat18$TSUM1 = 1400
+wheat18$TSUM2 = 1300
+wheat18$SPAN = 30
+wheat18$TBASE = -4
+
+#define soil types
+soilBed <- wofost_soil("sr4")
+soilFlat <- wofost_soil("sr4")
+soilBed$SMW = 0.147
+soilFlat$SMW = 0.147
+soilBed$SMFCF = 0.286
+soilFlat$SMFCF = 0.286
+soilBed$SM0 = 0.481
+soilFlat$SM0 = 0.481
+soilBed$K0 = 0.6
+soilFlat$K0 = 0.6
+soilBed$WAV = 0.2025
+soilFlat$WAV = 0.2025
+soilBed$IDRAIN = 1
+soilBed$DD = 75
+```
+
+```{r}
+#model set up
+m1 <- wofost_model(wheat1, wBed5IR, soilBed, contrReg)
+m2 <- wofost_model(wheat1, wBed2IR, soilBed, contrReg)
+m3 <- wofost_model(wheat1, wFlat5IR, soilFlat, contrReg)
+m4 <- wofost_model(wheat1, wFlatDrip, soilFlat, contrReg)
+m5 <- wofost_model(wheat1, wEHT, soilBed, contrEHT)
+m6 <- wofost_model(wheat1, wLHT, soilBed, contrLHT)
+
+#run model
+res1 <- run(m1)
+res2 <- run(m2)
+res3 <- run(m3)
+res4 <- run(m4)
+res5 <- run(m5)
+res6 <- run(m6)
+```
+
+```{r}
+# extract result: WSO
+WSO1 = res1$WSO[length(res1$WSO)] # change the length here
+WSO2 = res2$WSO[length(res2$WSO)]
+WSO3 = res3$WSO[length(res3$WSO)]
+WSO4 = res4$WSO[length(res4$WSO)]
+WSO5 = res5$WSO[length(res5$WSO)]
+WSO6 = res6$WSO[length(res6$WSO)]
+
+# extract result: days to heading
+DTHT1 = res1$DVS[1]
+dateDTHT1 = 1
+while(DTHT1 < 1) {
+  dateDTHT1 = dateDTHT1 + 1
+  DTHT1 = res1$DVS[dateDTHT1]
+}
+
+DTHT2 = res2$DVS[1]
+dateDTHT2 = 1
+while(DTHT2 < 1) {
+  dateDTHT2 = dateDTHT2 + 1
+  DTHT2 = res2$DVS[dateDTHT2]
+}
+
+DTHT3 = res3$DVS[1]
+dateDTHT3 = 1
+while(DTHT3 < 1) {
+  dateDTHT3 = dateDTHT3 + 1
+  DTHT3 = res3$DVS[dateDTHT3]
+}
+
+DTHT4 = res4$DVS[1]
+dateDTHT4 = 1
+while(DTHT4 < 1) {
+  dateDTHT4 = dateDTHT4 + 1
+  DTHT4 = res4$DVS[dateDTHT4]
+}
+
+DTHT5 = res5$DVS[1]
+dateDTHT5 = 1
+while(DTHT5 < 1) {
+  dateDTHT5 = dateDTHT5 + 1
+  DTHT5 = res5$DVS[dateDTHT5]
+}
+
+DTHT6 = res6$DVS[1]
+dateDTHT6 = 1
+while(DTHT6 < 1) {
+  dateDTHT6 = dateDTHT6 + 1
+  DTHT6 = res1$DVS[dateDTHT6]
+}
+
+# extract result: days to maturity
+DTMT1 = res1$DVS[1]
+dateDTMT1 = 1
+while(DTMT1 < 1.95) {
+  dateDTMT1 = dateDTMT1 + 1
+  DTMT1 = res1$DVS[dateDTMT1]
+}
+
+DTMT2 = res2$DVS[1]
+dateDTMT2 = 1
+while(DTMT2 < 1.95) {
+  dateDTMT2 = dateDTMT2 + 1
+  DTMT2 = res2$DVS[dateDTMT2]
+}
+
+DTMT3 = res3$DVS[1]
+dateDTMT3 = 1
+while(DTMT3 < 1.95) {
+  dateDTMT3 = dateDTMT3 + 1
+  DTMT3 = res3$DVS[dateDTMT3]
+}
+
+DTMT4 = res4$DVS[1]
+dateDTMT4 = 1
+while(DTMT4 < 1.95) {
+  dateDTMT4 = dateDTMT4 + 1
+  DTMT4 = res4$DVS[dateDTMT1]
+}
+
+DTMT5 = res5$DVS[1]
+dateDTMT5 = 1
+while(DTMT5 < 1.95) {
+  dateDTMT5 = dateDTMT5 + 1
+  DTMT5 = res5$DVS[dateDTMT5]
+}
+
+DTMT6 = res6$DVS[1]
+dateDTMT6 = 1
+while(DTMT6 < 1.95) {
+  dateDTMT6 = dateDTMT6 + 1
+  DTMT6 = res6$DVS[dateDTMT6]
+}
+```
+
+```{r}
+res1415 <- data.frame(id = c("wheat1", "wheat2", "wheat3", "wheat4", "wheat5", "wheat6",
+                             "wheat7", "wheat8", "wheat9", "wheat10", "wheat11", "wheat12",
+                             "wheat13", "wheat14", "wheat15", "wheat16", "wheat17", "wheat18"),
+                      DTHT_Bed5IR = rep(0,18), DTMT_Bed5IR = rep(0,18), GY_Bed5IR = rep(0,18),
+                      DTHT_Bed2IR = rep(0,18), DTMT_Bed2IR = rep(0,18), GY_Bed2IR = rep(0,18),
+                      DTHT_Flat5IR = rep(0,18), DTMT_Flat5IR = rep(0,18), GY_Flat5IR = rep(0,18),
+                      DTHT_FlatDrip = rep(0,18), DTMT_FlatDrip = rep(0,18), GY_FlatDrip = rep(0,18),
+                      DTHT_EHT = rep(0,18), DTMT_EHT = rep(0,18), GY_EHT = rep(0,18),
+                      DTHT_LHT = rep(0,18), DTMT_LHT = rep(0,18), GY_LHT = rep(0,18))
+
+```
+
+```{r}
+res1415$GY_Bed5IR[1] = WSO1
+res1415$GY_Bed2IR[1] = WSO2
+res1415$GY_Flat5IR[1] = WSO3
+res1415$GY_FlatDrip[1] = WSO4
+res1415$GY_EHT[1] = WSO5
+res1415$GY_LHT[1] = WSO6
+
+res1415$DTHT_Bed5IR[1] = dateDTHT1
+res1415$DTHT_Bed2IR[1] = dateDTHT2
+res1415$DTHT_Flat5IR[1] = dateDTHT3
+res1415$DTHT_FlatDrip[1] = dateDTHT4
+res1415$DTHT_EHT[1] = dateDTHT5
+res1415$DTHT_LHT[1] = dateDTHT6
+
+res1415$DTMT_Bed5IR[1] = 93
+res1415$DTMT_Bed2IR[1] = 93
+res1415$DTMT_Flat5IR[1] = 93
+res1415$DTMT_FlatDrip[1] = 93
+res1415$DTMT_EHT[1] = 80
+res1415$DTMT_LHT[1] = 87
+```
+
+```{r}
+write.csv(res1415, "/Users/zongqi.yu/Desktop/HybSeed-LitRev/res1415.csv", row.names=FALSE)
+```
